@@ -1,6 +1,6 @@
 {
   "name": "gsi4mqtt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MQTT client and broker to provide German Green Power Index (GrünstromIndex) as a service for home area networks , energy management systems and smart homes.",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/energychain/GSI4MQTT.git"
+  },
+  "bin": {
+    "gsimqttbroker": "./index.js",
+    "corrently.mqtt": "./index.js"
   },
   "keywords": [
     "mqtt",
