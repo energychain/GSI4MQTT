@@ -13,14 +13,19 @@ gsimqttbroker -z <Postleitzahl>
 
 ## Install as Daemon
 
-Install Forever:
+Install GSI4MQTT and Forever
 ```
 npm install -g forever
+
+git clone https://github.com/energychain/GSI4MQTT
+cd GSI4MQTT
+npm install
+
 ```
 
 Start MQTT Broker using forever
 ```
-forever gsimqttbroker
+forever start ./index.js
 ```
 
 ## Based on:

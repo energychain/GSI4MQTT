@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/energychain/GSI4MQTT#readme",
   "dependencies": {
+    "abbrev": "^1.1.1",
     "argparse": "^1.0.10",
     "axios": "^0.19.2",
     "mosca": "^2.8.3",
