@@ -5,8 +5,9 @@ const ArgumentParser = require('argparse').ArgumentParser;
 const persist = require('node-persist');
 const axios = require('axios');
 const moment = require('moment');
+const mqtt = require('mqtt');
 
-const storage = persist.create({dir: 'data', ttl: 3600000});
+const storage = persist.create({dir: 'data', ttl: 7200000});
 const parser = new ArgumentParser({
   version: '1.0.0',
   addHelp:true,
@@ -34,6 +35,13 @@ parser.addArgument(
   }
 );
 
+parser.addArgument(
+  [ '-c', '--client' ],
+  {
+    help: 'Publishes to remote broker - act as client specify mqtt URI'
+  }
+);
+
 const args = parser.parseArgs();
 
 let brokerPort = 1883;
@@ -44,6 +52,11 @@ if(args.zip != null) { zipCode = args.zip };
 
 let verbose = false;
 if(args.verbose != null) { verbose = true };
+
+let client = null;
+if(args.client != null) {
+  client = mqtt.connect(args.client);
+}
 
 const moscaSettings = {
   port: brokerPort,
@@ -76,10 +89,15 @@ const publishMessage = async function(topic,value) {
       retain: true
     };
     server.publish(message, function() {
-      if(verbose) {
-        console.log('Published',message);
+      if(client!=null) {
+        client.publish(topic,''+value);
+        resolve();
+      } else {
+        if(verbose) {
+          console.log('Published',message);
+        }
+        resolve();
       }
-      resolve();
     });
   })
 }
@@ -94,13 +112,17 @@ const publishGSI = async function(gsi) {
 
  let min_ts =0;
  let max_ts =0;
+ let switches = [];
 
  for(let i=0;i<gsi.forecast.length;i++) {
    await publishMessage('/timestamp/'+gsi.forecast[i].timeStamp,gsi.forecast[i].gsi);
+
+
    if(gsi.forecast[i].timeStamp > now) {
      await publishMessage('/relativeHours/'+Math.floor((gsi.forecast[i].timeStamp-now)/3600000),gsi.forecast[i].gsi);
    }
    if(i<24) {
+     switches.push(gsi.forecast[i]);
      if(min > gsi.forecast[i].gsi) {
        min = gsi.forecast[i].gsi;
        min_ts  = gsi.forecast[i].timeStamp;
@@ -125,12 +147,32 @@ const publishGSI = async function(gsi) {
      matrix['h_'+i]['avg_'+j] = false;
    }
  }
+
+ switches.sort(function(a,b) {
+   if (a.gsi > b.gsi) return 1;
+   if (b.gsi > a.gsi) return -1;
+   return 0;
+ });
+ switches = switches.reverse();
+ let latest_gsi = gsi.forecast[0].gsi;
+ for(let i=0;i<switches.length;i++) {
+    if(switches[i].gsi < latest_gsi) {
+        await publishMessage('/bestHours/'+i+'/string','off');
+        await publishMessage('/bestHours/'+i,0);
+    } else {
+      await publishMessage('/bestHours/'+i+'/string','on');
+      await publishMessage('/bestHours/'+i,1);
+    }
+  }
+
+
  await publishMessage('/min/isostring',moment(min_ts).format());
  await publishMessage('/min',min);
  await publishMessage('/min/timestamp',min_ts);
  await publishMessage('/max/isostring',moment(max_ts).format());
  await publishMessage('/max/timestamp',max_ts);
  await publishMessage('/max',max);
+
 
  for(let z=1;z<24;z++) {
    let maxGsi = 0;
@@ -141,10 +183,12 @@ const publishGSI = async function(gsi) {
        timeStamp =  matrix['h_'+i].timeStamp;
      }
    }
+
    await publishMessage('/forHoursIn24/'+z,timeStamp);
    await publishMessage('/forHoursIn24/'+z+'/timestamp',timeStamp);
    await publishMessage('/forHoursIn24/'+z+'/isostring',moment(timeStamp).format());
  }
+ console.log(new Date(),'Published');
 }
 
 const setup = async function() {
@@ -155,10 +199,22 @@ const setup = async function() {
   // initial Publish of Messages on Broker start
   publishGSI(await getGSI());
 
-  // ensure Republish of GSI values
-  setInterval(async function() {
+  // ensure Republish of GSI values every 15 minutes
+  let karmaInterval = setInterval(async function() {
     publishGSI(await getGSI());
-  },3600000);
+  },900000);
+
+  // ensure Republish of GSI values at the hour
+  let now = new Date();
+  let nextHr = new Date(new Date().getTime()+3600000).setMinutes(0,0,0);
+  setTimeout(async function() {
+      publishGSI(await getGSI());
+      clearInterval(karmaInterval);
+      setInterval(async function() {
+        publishGSI(await getGSI());
+      },900000);
+  },nextHr-now);
+
   console.log("Sample Topics Served:");
   console.log(" mqtt://localhost:"+brokerPort+"/now - Current GSI Value");
   console.log(" mqtt://localhost:"+brokerPort+"/min - Minimum GSI Value in next 24 hours");
@@ -166,6 +222,7 @@ const setup = async function() {
   console.log(" mqtt://localhost:"+brokerPort+"/forHoursIn24/3 - Timestamp of best 3 hours in row within next 24");
   console.log(" mqtt://localhost:"+brokerPort+"/forHoursIn24/4/isostring - ISO 8601 encoded String of best 3 hours in row within next 24 (start)");
   console.log(" mqtt://localhost:"+brokerPort+"/relativeHours/5 - GSI Value in 5 hours");
+  console.log(" mqtt://localhost:"+brokerPort+"/bestHours/3 - Use as switch. Will have value of 1 during the best 3 hours within next 24");
 }
 
 const fs = require("fs");
