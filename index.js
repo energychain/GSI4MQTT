@@ -4,6 +4,7 @@ const mosca = require('mosca');
 const ArgumentParser = require('argparse').ArgumentParser;
 const persist = require('node-persist');
 const axios = require('axios');
+const moment = require('moment');
 
 const storage = persist.create({dir: 'data', ttl: 3600000});
 const parser = new ArgumentParser({
@@ -87,12 +88,28 @@ const publishGSI = async function(gsi) {
  let now = new Date().getTime();
  let matrix = {}
  await publishMessage('/now',gsi.forecast[0].gsi);
+ await publishMessage('/now/isostring',moment(gsi.forecast[0].timeStamp).format());
+ let min = 100;
+ let max = 0;
+
+ let min_ts =0;
+ let max_ts =0;
+
  for(let i=0;i<gsi.forecast.length;i++) {
    await publishMessage('/timestamp/'+gsi.forecast[i].timeStamp,gsi.forecast[i].gsi);
    if(gsi.forecast[i].timeStamp > now) {
      await publishMessage('/relativeHours/'+Math.floor((gsi.forecast[i].timeStamp-now)/3600000),gsi.forecast[i].gsi);
    }
-
+   if(i<24) {
+     if(min > gsi.forecast[i].gsi) {
+       min = gsi.forecast[i].gsi;
+       min_ts  = gsi.forecast[i].timeStamp;
+     }
+     if(max < gsi.forecast[i].gsi) {
+       max = gsi.forecast[i].gsi;
+       max_ts  = gsi.forecast[i].timeStamp;
+     }
+   }
    // calcultate matrix
    matrix['h_'+i] = {
        timeStamp: gsi.forecast[i].timeStamp
@@ -108,6 +125,13 @@ const publishGSI = async function(gsi) {
      matrix['h_'+i]['avg_'+j] = false;
    }
  }
+ await publishMessage('/min/isostring',moment(min_ts).format());
+ await publishMessage('/min',min);
+ await publishMessage('/min/timestamp',min_ts);
+ await publishMessage('/max/isostring',moment(max_ts).format());
+ await publishMessage('/max/timestamp',max_ts);
+ await publishMessage('/max',max);
+
  for(let z=1;z<24;z++) {
    let maxGsi = 0;
    let timeStamp = 0;
@@ -118,6 +142,8 @@ const publishGSI = async function(gsi) {
      }
    }
    await publishMessage('/forHoursIn24/'+z,timeStamp);
+   await publishMessage('/forHoursIn24/'+z+'/timestamp',timeStamp);
+   await publishMessage('/forHoursIn24/'+z+'/isostring',moment(timeStamp).format());
  }
 }
 
@@ -135,7 +161,10 @@ const setup = async function() {
   },3600000);
   console.log("Sample Topics Served:");
   console.log(" mqtt://localhost:"+brokerPort+"/now - Current GSI Value");
+  console.log(" mqtt://localhost:"+brokerPort+"/min - Minimum GSI Value in next 24 hours");
+  console.log(" mqtt://localhost:"+brokerPort+"/max/isostring - ISO 8601 encoded Time of maximum GSI Value");
   console.log(" mqtt://localhost:"+brokerPort+"/forHoursIn24/3 - Timestamp of best 3 hours in row within next 24");
+  console.log(" mqtt://localhost:"+brokerPort+"/forHoursIn24/4/isostring - ISO 8601 encoded String of best 3 hours in row within next 24 (start)");
   console.log(" mqtt://localhost:"+brokerPort+"/relativeHours/5 - GSI Value in 5 hours");
 }
 
