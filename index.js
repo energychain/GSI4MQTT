@@ -139,6 +139,10 @@ const setup = async function() {
   console.log(" mqtt://localhost:"+brokerPort+"/relativeHours/5 - GSI Value in 5 hours");
 }
 
+const fs = require("fs");
+if (!fs.existsSync("data/")) {
+    fs.mkdirSync("data/");
+}
 
 const server = new mosca.Server(moscaSettings);
 const mqttpersistence = new mosca.persistence.Memory();
