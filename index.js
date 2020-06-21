@@ -156,7 +156,7 @@ const publishGSI = async function(gsi) {
  switches = switches.reverse();
  let latest_gsi = gsi.forecast[0].gsi;
  for(let i=0;i<switches.length;i++) {
-    if(switches[i].gsi < latest_gsi) {
+    if(switches[i].gsi >= latest_gsi) {
         await publishMessage('/bestHours/'+i+'/string','off');
         await publishMessage('/bestHours/'+i,0);
     } else {

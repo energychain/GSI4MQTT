@@ -27,12 +27,16 @@ Start MQTT Broker using forever
 ```
 forever start ./index.js
 ```
+
+## Based on:
+- Mosca JS [https://github.com/moscajs/]
+- GrünstromIndex [https://www.gruenstromindex.de/]
+
+
+# GSI4MQTT -Deutsch
+
 ## Verwendung
 GSI4MQTT wurde entwickelt, um es möglicht einfach zu machen im SmartHome die Geräte auf Basis des GrünstromIndex anzusteuern. Hierzu wird ein eigener MQTT Broker gestartet und
 zusätzlich können Nachrichten als Client auf einen fremden Broker gesendet werden (`-c mqtt://ipandererprober:port`).
 
 Zur einfacheren Verwendung wird eine ganze Reihe von unterschiedlichen MQTT Topics veröffentlicht, die jeweils dem eigentlichen Anwendungsfall entsprechend genutzt werden können.
-
-## Based on:
-- Mosca JS [https://github.com/moscajs/]
-- GrünstromIndex [https://www.gruenstromindex.de/]
