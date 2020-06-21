@@ -40,3 +40,13 @@ GSI4MQTT wurde entwickelt, um es möglicht einfach zu machen im SmartHome die Ge
 zusätzlich können Nachrichten als Client auf einen fremden Broker gesendet werden (`-c mqtt://ipandererprober:port`).
 
 Zur einfacheren Verwendung wird eine ganze Reihe von unterschiedlichen MQTT Topics veröffentlicht, die jeweils dem eigentlichen Anwendungsfall entsprechend genutzt werden können.
+
+### Anwendungsfall: Gerät nur in den grünsten 6 Stunden des Tages nutzen
+```
+/bestHours/6
+
+Message:
+[0/1]
+```
+
+Ist die Nachricht 1, dann ist zur Zeit einer der besten 6 Stunden am Tag.
