@@ -1,6 +1,6 @@
 {
   "name": "gsi4mqtt",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "MQTT client and broker to provide German Green Power Index (GrünstromIndex) as a service for home area networks , energy management systems and smart homes.",
   "main": "index.js",
   "scripts": {

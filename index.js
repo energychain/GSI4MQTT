@@ -7,7 +7,7 @@ const axios = require('axios');
 const moment = require('moment');
 const mqtt = require('mqtt');
 
-const storage = persist.create({dir: 'data', ttl: 7200000});
+const storage = persist.create({dir: 'data', ttl: 3500000});
 const parser = new ArgumentParser({
   version: '1.0.0',
   addHelp:true,
