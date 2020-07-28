@@ -1,6 +1,6 @@
 {
   "name": "gsi4mqtt",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "MQTT client and broker to provide German Green Power Index (GrünstromIndex) as a service for home area networks , energy management systems and smart homes.",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,10 @@
     "corrently.mqtt": "./index.js",
     "gsi4mqtt": "./index.js"
   },
+  "funding": {
+	 "type": "corporation",
+	 "url": "https://www.stromdao.de/crowdfunding/info"
+ 	},
   "keywords": [
     "mqtt",
     "corrently",

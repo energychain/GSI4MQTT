@@ -9,7 +9,7 @@ const mqtt = require('mqtt');
 
 const storage = persist.create({dir: 'data', ttl: 3500000});
 const parser = new ArgumentParser({
-  version: '1.0.0',
+  version: '1.0.8',
   addHelp:true,
   description: 'gsi4mqtt broker'
 });
