@@ -37,7 +37,7 @@
   "dependencies": {
     "abbrev": "^1.1.1",
     "argparse": "^1.0.10",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "moment": "^2.27.0",
     "mosca": "^2.8.3",
     "mqtt": "^4.1.0",
